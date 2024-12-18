@@ -1,52 +1,38 @@
-/*const numbers = document.querySelectorAll(".number");
-const operators = document.querySelectorAll(".operator");
-
-const currentNumber = "" // Número que o usuário está digitando
-const previousNumber = "" // Número armazenado antes de um operador
-const operator = "" // Operador selecionado (+, -, *, /)
-
-numbers.forEach((number) => {
-    number.addEventListener("click", () => {
-        document.querySelector("#last-calc").textContent += number.textContent;
-        document.querySelector("#result span").textContent += number.textContent;
-        
-    });
-});
-
-operators.forEach((operator) => {
-    operator.addEventListener("click", () => {
-        if(currentNumber === "") return;
-
-        previousNumber = currentNumber;
-        currentNumber = "";
-        operator = operator.value
-
-        document.querySelector("#last-calc").textContent = previousNumber + " " + operator;
-    });
-});*/
-
 let currentNumber = ""; // Número que o usuário está digitando
 let previousNumber = ""; // Número armazenado antes de um operador
 let operator = ""; // Operador selecionado (+, -, *, /)
+let decimalAdded = false; // Controle para evitar múltiplas vírgulas no mesmo número
 
 // Selecionar os números
 const numbers = document.querySelectorAll(".number");
 numbers.forEach((number) => {
     number.addEventListener("click", () => {
-        currentNumber += number.textContent; // Adiciona o número ao atual
+        currentNumber += number.value; // Adiciona o número ao atual
         document.querySelector("#last-calc").textContent = currentNumber; // Mostra no display
     });
+});
+
+// Adicionar a vírgula
+document.querySelector(".decimal").addEventListener("click", () => {
+    if (!decimalAdded) {
+        currentNumber += ","; // Adiciona a vírgula ao número atual
+        decimalAdded = true; // Marca que a vírgula foi adicionada
+        document.querySelector("#last-calc").textContent = currentNumber; // Mostra no display
+    }
 });
 
 // Selecionar os operadores
 const operators = document.querySelectorAll(".operator");
 operators.forEach((op) => {
     op.addEventListener("click", () => {
-        if (currentNumber === "") return; // Evita que operadores sejam usados sem números
+        if (currentNumber === "") return; // Evita operadores sem números
 
+        // Substituir vírgula por ponto para trabalhar com decimais
+        currentNumber = currentNumber.replace(",", ".");
         previousNumber = currentNumber; // Armazena o número atual
         currentNumber = ""; // Reseta o número atual
         operator = op.value; // Define o operador selecionado
+        decimalAdded = false; // Reseta o controle da vírgula
 
         // Atualiza o display para mostrar o operador
         document.querySelector("#last-calc").textContent = previousNumber + " " + operator;
@@ -57,16 +43,20 @@ operators.forEach((op) => {
 document.querySelector("#equals").addEventListener("click", () => {
     if (currentNumber === "" || previousNumber === "" || operator === "") return;
 
+    // Substituir vírgula por ponto para trabalhar com decimais
+    currentNumber = currentNumber.replace(",", ".");
+
     // Calcula o resultado
-    const result = calculate(Number(previousNumber), Number(currentNumber), operator);
+    const result = calculate(parseFloat(previousNumber), parseFloat(currentNumber), operator);
 
     // Mostra o resultado no display
-    document.querySelector("#result span").textContent = result;
+    document.querySelector("#result span").textContent = Number(result.toFixed(2)).toString().replace(".", ",");
 
     // Reseta os valores para uma nova operação
     currentNumber = result.toString();
     previousNumber = "";
     operator = "";
+    decimalAdded = false; // Permite nova vírgula
 });
 
 // Função para realizar o cálculo
@@ -83,15 +73,17 @@ function calculate(num1, num2, operator) {
         default:
             return 0;
     }
-
-    return Number(result.toFixed(2));
 }
 
 // Botão de "C" (Clear)
-document.querySelector(".secondary").addEventListener("click", () => {
-    currentNumber = "";
-    previousNumber = "";
-    operator = "";
-    document.querySelector("#last-calc").textContent = "";
-    document.querySelector("#result span").textContent = "0";
+const clear = document.querySelectorAll(".clear");
+clear.forEach((btn) => {
+    btn.addEventListener("click", () => {
+        currentNumber = "";
+        previousNumber = "";
+        operator = "";
+        decimalAdded = false; // Permite nova vírgula
+        document.querySelector("#last-calc").textContent = "";
+        document.querySelector("#result span").textContent = "0";
+    });
 });
